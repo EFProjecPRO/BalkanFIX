@@ -105,14 +105,26 @@ builder.defineStreamHandler((args) => {
     }
 
     if (args.type === "series") {
-        const series = movies.find((m) => m.id === args.id && m.type === "series");
+        const [seriesId, seasonNumber, episodeId] = args.id.split(":");
+        const series = movies.find((m) => m.id === seriesId && m.type === "series");
+        console.log("Found series:", series);
+
         if (series) {
-            const season = series.seasons.find((s) => s.number === parseInt(args.season));
+            const season = series.seasons.find(
+                (s) => s.number === parseInt(seasonNumber)
+            );
+            console.log("Found season:", season);
+
             if (season) {
-                const episode = season.episodes.find((e) => e.id === args.episodeId);
+                const episode = season.episodes.find((e) => e.id === episodeId);
+                console.log("Found episode:", episode);
+
                 if (episode) {
+                    const stream = createStream(episode.stream);
+                    console.log("Generated stream object for episode:", stream);
+
                     return Promise.resolve({
-                        streams: [createStream(episode.stream)],
+                        streams: [stream],
                     });
                 }
             }
