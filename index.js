@@ -56,35 +56,41 @@ builder.defineCatalogHandler((args) => {
     console.log("CatalogHandler args:", args);
 
     if (args.type === "movie" && args.id === "custom_movies") {
-        const movieMetas = movies.filter((m) => m.type === "movie" && !m.isCartoon).map((m) => ({
-            id: m.id,
-            type: m.type,
-            name: m.name,
-            poster: m.poster,
-            description: m.description
-        }));
+        const movieMetas = movies
+            .filter((m) => m.type === "movie" && !m.isCartoon)
+            .map((m) => ({
+                id: m.id,
+                type: m.type,
+                name: m.name,
+                poster: m.poster,
+                description: m.description,
+            }));
         return Promise.resolve({ metas: movieMetas });
     }
 
     if (args.type === "movie" && args.id === "custom_cartoons") {
-        const cartoonMetas = movies.filter((m) => m.type === "movie" && m.isCartoon).map((m) => ({
-            id: m.id,
-            type: m.type,
-            name: m.name,
-            poster: m.poster,
-            description: m.description
-        }));
+        const cartoonMetas = movies
+            .filter((m) => m.type === "movie" && m.isCartoon)
+            .map((m) => ({
+                id: m.id,
+                type: m.type,
+                name: m.name,
+                poster: m.poster,
+                description: m.description,
+            }));
         return Promise.resolve({ metas: cartoonMetas });
     }
 
     if (args.type === "series" && args.id === "custom_series") {
-        const seriesMetas = movies.filter((m) => m.type === "series").map((m) => ({
-            id: m.id,
-            type: m.type,
-            name: m.name,
-            poster: m.poster,
-            description: m.description
-        }));
+        const seriesMetas = movies
+            .filter((m) => m.type === "series")
+            .map((m) => ({
+                id: m.id,
+                type: m.type,
+                name: m.name,
+                poster: m.poster,
+                description: m.description,
+            }));
         return Promise.resolve({ metas: seriesMetas });
     }
 
@@ -97,28 +103,46 @@ builder.defineStreamHandler((args) => {
 
     if (args.type === "movie") {
         const movie = movies.find((m) => m.id === args.id && m.type === "movie");
+        console.log("Found movie:", movie);
+
         if (movie) {
+            const stream = createStream(movie.stream);
+            console.log("Generated stream object:", stream);
+
             return Promise.resolve({
-                streams: [createStream(movie.stream)],
+                streams: [stream],
             });
         }
     }
 
     if (args.type === "series") {
-        const series = movies.find((m) => m.id === args.id && m.type === "series");
+        const [seriesId, seasonNumber, episodeId] = args.id.split(":");
+        const series = movies.find((m) => m.id === seriesId && m.type === "series");
+        console.log("Found series:", series);
+
         if (series) {
-            const season = series.seasons.find((s) => s.number === parseInt(args.season));
+            const season = series.seasons.find(
+                (s) => s.number === parseInt(seasonNumber)
+            );
+            console.log("Found season:", season);
+
             if (season) {
-                const episode = season.episodes.find((e) => e.id === args.episodeId);
+                const episode = season.episodes.find((e) => e.id === episodeId);
+                console.log("Found episode:", episode);
+
                 if (episode) {
+                    const stream = createStream(episode.stream);
+                    console.log("Generated stream object for episode:", stream);
+
                     return Promise.resolve({
-                        streams: [createStream(episode.stream)],
+                        streams: [stream],
                     });
                 }
             }
         }
     }
 
+    console.log("No streams found for args:", args);
     return Promise.resolve({ streams: [] });
 });
 
