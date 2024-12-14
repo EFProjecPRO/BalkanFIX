@@ -1,8 +1,24 @@
 const { addonBuilder, serveHTTP } = require("stremio-addon-sdk");
-const fs = require("fs");
+const axios = require("axios"); // Paket za HTTP zahteve (moraš instalirati: npm install axios)
 
-// Učitavanje podataka iz JSON fajla
-const movies = JSON.parse(fs.readFileSync("movies.json", "utf8"));
+// URL ka movies.json na serveru
+const MOVIES_URL = "https://efproject.pro/GleyPro/movie/movies.json"; // Zameni s tvojim URL-om
+
+let movies = [];
+
+// Funkcija za preuzimanje movies.json sa servera
+const fetchMovies = async () => {
+    try {
+        const response = await axios.get(MOVIES_URL);
+        movies = response.data;
+        console.log("Movies data fetched successfully!");
+    } catch (error) {
+        console.error("Error fetching movies.json:", error);
+    }
+};
+
+// Pokreni preuzimanje movies.json prilikom pokretanja dodatka
+fetchMovies();
 
 // Definisanje manifestacije dodatka
 const manifest = {
@@ -16,21 +32,21 @@ const manifest = {
         {
             type: "movie",
             id: "custom_movies",
-            name: "Balkan: Filmovi"
+            name: "Gley: Filmovi",
         },
         {
             type: "movie",
             id: "custom_cartoons",
-            name: "Balkan: Crtani"
+            name: "Gley: Crtani",
         },
         {
             type: "series",
             id: "custom_series",
-            name: "Balkan: Serije"
-        }
+            name: "Gley: Serije",
+        },
     ],
-    background: "https://i.postimg.cc/WzFqwrTC/ovopozadina.jpg",
-    logo: "https://i.postimg.cc/2jtbpyH0/EFProject-Logo.png"
+    background: "https://i.postimg.cc/tgbg5QPW/wallpapers.jpg",
+    logo: "https://i.postimg.cc/Dfp8KNk3/ic-stremio-logo.png",
 };
 
 // Kreiranje dodatka
@@ -38,17 +54,26 @@ const builder = new addonBuilder(manifest);
 
 // Funkcija za kreiranje stream objekta
 const createStream = (streamUrl) => {
+    console.log("Processing stream URL:", streamUrl);
+
     if (streamUrl.includes("youtube.com") || streamUrl.includes("youtu.be")) {
-        return {
-            title: "Watch on YouTube",
-            ytId: streamUrl.split("v=")[1] || streamUrl.split("/").pop(),
-        };
-    } else {
-        return {
-            title: "Watch Now",
-            url: streamUrl,
-        };
+        const videoIdMatch = streamUrl.match(/(?:v=|\/)([a-zA-Z0-9_-]{11})/);
+        console.log("YouTube video ID match:", videoIdMatch);
+
+        if (videoIdMatch) {
+            return {
+                title: "Watch on YouTube",
+                ytId: videoIdMatch[1],
+            };
+        } else {
+            console.error("Invalid YouTube URL format:", streamUrl);
+        }
     }
+
+    return {
+        title: "Watch Now",
+        url: streamUrl,
+    };
 };
 
 // Ruta za katalog
