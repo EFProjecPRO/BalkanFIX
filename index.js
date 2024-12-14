@@ -78,13 +78,15 @@ builder.defineCatalogHandler((args) => {
     }
 
     if (args.type === "series" && args.id === "custom_series") {
-        const seriesMetas = movies.filter((m) => m.type === "series").map((m) => ({
-            id: m.id,
-            type: m.type,
-            name: m.name,
-            poster: m.poster,
-            description: m.description
-        }));
+        const seriesMetas = movies
+            .filter((m) => m.type === "series")
+            .map((m) => ({
+                id: m.id,
+                type: m.type,
+                name: m.name,
+                poster: m.poster,
+                description: m.description,
+            }));
         return Promise.resolve({ metas: seriesMetas });
     }
 
@@ -131,6 +133,7 @@ builder.defineStreamHandler((args) => {
         }
     }
 
+    console.log("No streams found for args:", args);
     return Promise.resolve({ streams: [] });
 });
 
