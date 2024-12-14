@@ -56,24 +56,28 @@ builder.defineCatalogHandler((args) => {
     console.log("CatalogHandler args:", args);
 
     if (args.type === "movie" && args.id === "custom_movies") {
-        const movieMetas = movies.filter((m) => m.type === "movie" && !m.isCartoon).map((m) => ({
-            id: m.id,
-            type: m.type,
-            name: m.name,
-            poster: m.poster,
-            description: m.description
-        }));
+        const movieMetas = movies
+            .filter((m) => m.type === "movie" && !m.isCartoon)
+            .map((m) => ({
+                id: m.id,
+                type: m.type,
+                name: m.name,
+                poster: m.poster,
+                description: m.description,
+            }));
         return Promise.resolve({ metas: movieMetas });
     }
 
     if (args.type === "movie" && args.id === "custom_cartoons") {
-        const cartoonMetas = movies.filter((m) => m.type === "movie" && m.isCartoon).map((m) => ({
-            id: m.id,
-            type: m.type,
-            name: m.name,
-            poster: m.poster,
-            description: m.description
-        }));
+        const cartoonMetas = movies
+            .filter((m) => m.type === "movie" && m.isCartoon)
+            .map((m) => ({
+                id: m.id,
+                type: m.type,
+                name: m.name,
+                poster: m.poster,
+                description: m.description,
+            }));
         return Promise.resolve({ metas: cartoonMetas });
     }
 
@@ -99,9 +103,14 @@ builder.defineStreamHandler((args) => {
 
     if (args.type === "movie") {
         const movie = movies.find((m) => m.id === args.id && m.type === "movie");
+        console.log("Found movie:", movie);
+
         if (movie) {
+            const stream = createStream(movie.stream);
+            console.log("Generated stream object:", stream);
+
             return Promise.resolve({
-                streams: [createStream(movie.stream)],
+                streams: [stream],
             });
         }
     }
